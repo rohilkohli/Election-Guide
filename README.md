@@ -58,8 +58,8 @@ ElectionPath uses a **two-tier AI response architecture**:
 - Centralized TypeScript types in `types/index.ts` — used across the entire codebase
 - Comprehensive JSDoc documentation on all public functions and components
 - `ErrorBoundary` component to gracefully handle runtime errors
-- `app/loading.tsx` for branded loading states across all route transitions
 - Passes `npm run lint` with **zero errors or warnings**
+- `Content-Security-Policy` (CSP) and edge-runtime optimization for secure and fast rendering
 
 ### 🔒 Security
 - API route validates and sanitizes all incoming request bodies
@@ -84,9 +84,12 @@ ElectionPath uses a **two-tier AI response architecture**:
 
 ### 🧪 Testing
 - **Jest + React Testing Library** configured with `jest.config.ts` and `jest.setup.ts`
-- `__tests__/ELI18Context.test.tsx`: Tests that the global toggle initializes correctly and flips state accurately
-- `__tests__/knowledgeBase.test.ts`: Tests the keyword search logic for all four code paths (match standard, match ELI18, fallback standard, fallback ELI18)
-- Run tests: `npm run test`
+- Extensive coverage (99% overall):
+  - API validation and prompt building (`__tests__/validateMessage.test.ts`, `__tests__/buildSystemPrompt.test.ts`)
+  - Server-side logger (`__tests__/logger.test.ts`)
+  - Component tests (`__tests__/Navbar.test.tsx`, `__tests__/ErrorBoundary.test.tsx`, `__tests__/ELI18Context.test.tsx`)
+  - Logic testing (`__tests__/knowledgeBase.test.ts`, `__tests__/knowledgeBaseData.test.ts`, `__tests__/translateRoute.test.ts`)
+- Run tests: `npm run test` (or `npm run test -- --coverage` for coverage report)
 
 ### ♿ Accessibility
 - **Skip to main content** link for keyboard users (visible on focus)
@@ -101,7 +104,10 @@ ElectionPath uses a **two-tier AI response architecture**:
 
 ### 🌐 Google Services
 - **Gemini 1.5 Flash** via `@google/generative-ai` SDK — primary intelligence engine
+- **Google Cloud Translation API** (`/api/translate`) — translates civic content into 10 Indian languages (Hindi, Tamil, Telugu, etc.)
+- **Google Cloud Logging** (`lib/logger.ts`) — structured JSON logging formatted perfectly for Stackdriver/Cloud Logging ingestion
 - **Google Analytics** via `@next/third-parties/google` `<GoogleAnalytics />` component in root layout
+- **Google Structured Data** (`application/ld+json`) — FAQ Schema built into the `<head>` for rich search results
 - **Google Cloud Run** — production deployment target (containerized via Dockerfile)
 - **Google Cloud Build** — automated container build pipeline
 - **Artifact Registry** — Docker image storage in `us-central1`
@@ -120,7 +126,8 @@ election-path/
 │   ├── assistant/page.tsx  # AI chat assistant
 │   ├── timeline/page.tsx   # 6-milestone visual timeline
 │   ├── learn/page.tsx      # Quick-learn cards + searchable FAQ
-│   └── api/chat/route.ts   # POST /api/chat — Gemini + KB fallback
+│   ├── api/chat/route.ts   # POST /api/chat — Gemini + KB fallback
+│   └── api/translate/route.ts # POST /api/translate — Google Translate API
 ├── components/
 │   ├── Navbar.tsx          # Responsive nav with ELI18 toggle + full ARIA
 │   ├── Footer.tsx          # Footer with links
@@ -134,12 +141,23 @@ election-path/
 │   ├── faqs.ts
 │   └── knowledgeBase.ts   # 12 curated civic Q&A entries
 ├── lib/
-│   └── searchKnowledgeBase.ts  # Keyword-scoring search algorithm (documented)
+│   ├── searchKnowledgeBase.ts  # Keyword-scoring search algorithm (documented)
+│   ├── validateMessage.ts      # Input sanitization
+│   ├── systemPrompt.ts         # Centralized system prompts
+│   ├── constants.ts            # Shared constants
+│   └── logger.ts               # Google Cloud Logging structured format
 ├── types/
 │   └── index.ts            # Shared TypeScript interfaces
 ├── __tests__/
 │   ├── ELI18Context.test.tsx
-│   └── knowledgeBase.test.ts
+│   ├── ErrorBoundary.test.tsx
+│   ├── Navbar.test.tsx
+│   ├── buildSystemPrompt.test.ts
+│   ├── knowledgeBase.test.ts
+│   ├── knowledgeBaseData.test.ts
+│   ├── logger.test.ts
+│   ├── translateRoute.test.ts
+│   └── validateMessage.test.ts
 ├── Dockerfile              # Multi-stage Node 20 Alpine build
 ├── .dockerignore
 └── next.config.ts          # Security headers + standalone output
@@ -193,6 +211,9 @@ Create a `.env.local` file:
 ```env
 # Required for live Gemini AI responses
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Required for Translation features (optional, fails gracefully)
+GOOGLE_TRANSLATE_API_KEY=your_translate_api_key_here
 
 # Optional: Google Analytics Measurement ID
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX

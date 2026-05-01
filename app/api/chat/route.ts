@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 import { searchKnowledgeBase } from "@/lib/searchKnowledgeBase";
+import { validateMessage } from "@/lib/validateMessage";
+import { logInfo, logWarn, logError } from "@/lib/logger";
+import { buildSystemPrompt } from "@/lib/systemPrompt";
 import type { ChatRequestBody } from "@/types";
 
-/** Maximum character length accepted for a user message to prevent abuse. */
-const MAX_MESSAGE_LENGTH = 500;
 
-/**
- * System instruction that defines the AI persona and guardrails for the
- * ElectionPath civic assistant. The assistant is constrained to be:
- *  - Politically neutral and factual
- *  - Focused exclusively on the Indian electoral process
- *  - Aware of the ELI18 (Explain Like I'm 18) simplification mode
- */
-function buildSystemPrompt(eli18Mode: boolean): string {
-  return [
-    "You are ElectionPath AI, a civic education assistant focused exclusively on",
-    "explaining election processes, procedures, and democratic participation in India.",
-    "Keep all responses factual, politically neutral, and educational only.",
-    "Do not express opinions on political parties, candidates, or policies.",
-    "Do not discuss topics outside of the Indian electoral system and democracy.",
-    eli18Mode
-      ? "Use very simple language appropriate for first-time voters aged 18. Avoid jargon."
-      : "Use clear, informative language suitable for any adult citizen.",
-  ].join(" ");
-}
 
 /**
  * POST /api/chat
@@ -34,36 +20,45 @@ function buildSystemPrompt(eli18Mode: boolean): string {
  * with automatic fallback to a local civic knowledge base on failure.
  *
  * Security measures:
- *  - Input length is validated and capped at MAX_MESSAGE_LENGTH characters.
+ *  - Input is validated and sanitised via {@link validateMessage}.
  *  - Gemini safety settings block harmful content at the BLOCK_MEDIUM_AND_ABOVE threshold.
+ *  - All server events are logged in Google Cloud Logging JSON format via {@link logInfo}.
  *  - The `X-Powered-By` header is suppressed via next.config.ts.
+ *  - Response-Time header is added for observability.
  */
 export async function POST(req: NextRequest) {
+  const start = Date.now();
+
   try {
     const body: unknown = await req.json();
 
-    // Validate request body shape
-    if (
-      typeof body !== "object" ||
-      body === null ||
-      typeof (body as Record<string, unknown>).message !== "string" ||
-      !(body as Record<string, unknown>).message
-    ) {
-      return NextResponse.json({ error: "Invalid message" }, { status: 400 });
+    // Validate that the body is an object before extracting message
+    if (typeof body !== "object" || body === null) {
+      logWarn("Chat: invalid request body", { body: typeof body });
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { message, eli18Mode } = body as ChatRequestBody;
+    const rawMessage = (body as Record<string, unknown>).message;
+    const validation = validateMessage(rawMessage);
 
-    // Sanitize: enforce message length limit
-    if (message.length > MAX_MESSAGE_LENGTH) {
+    if (!validation.valid) {
+      logWarn("Chat: message validation failed", { error: validation.error });
       return NextResponse.json(
-        { error: `Message too long. Please keep it under ${MAX_MESSAGE_LENGTH} characters.` },
-        { status: 400 }
+        { error: validation.error },
+        { status: validation.status }
       );
     }
 
+    const { sanitized: message } = validation;
+    const { eli18Mode } = body as ChatRequestBody;
     const safeEli18Mode = eli18Mode === true;
     const geminiApiKey = process.env.GEMINI_API_KEY;
+
+    logInfo("Chat: request received", {
+      messageLength: message.length,
+      eli18Mode: safeEli18Mode,
+      hasApiKey: Boolean(geminiApiKey),
+    });
 
     // ── Gemini API (primary path) ──────────────────────────────────────
     if (geminiApiKey) {
@@ -86,6 +81,10 @@ export async function POST(req: NextRequest) {
               category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
               threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
             },
+            {
+              category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            },
           ],
         });
 
@@ -93,19 +92,48 @@ export async function POST(req: NextRequest) {
         const geminiAnswer = result.response.text();
 
         if (geminiAnswer) {
-          return NextResponse.json({ response: geminiAnswer });
+          const elapsed = Date.now() - start;
+          logInfo("Chat: Gemini response sent", {
+            responseLength: geminiAnswer.length,
+            elapsedMs: elapsed,
+          });
+          return NextResponse.json(
+            { response: geminiAnswer },
+            {
+              headers: {
+                "X-Response-Time": `${elapsed}ms`,
+                "Cache-Control": "no-store",
+              },
+            }
+          );
         }
       } catch (geminiError) {
         // Log on the server side, but don't expose internals to client
-        console.error("[ElectionPath] Gemini API error, falling back to knowledge base:", geminiError);
+        logError("Chat: Gemini API error, falling back to knowledge base", {
+          error: String(geminiError),
+        });
       }
     }
     // ── End Gemini integration ─────────────────────────────────────────
 
     // Fallback: local knowledge base search
     const answer = searchKnowledgeBase(message, safeEli18Mode);
-    return NextResponse.json({ response: answer });
-  } catch {
+    const elapsed = Date.now() - start;
+    logInfo("Chat: knowledge base response sent", {
+      elapsedMs: elapsed,
+      eli18Mode: safeEli18Mode,
+    });
+    return NextResponse.json(
+      { response: answer },
+      {
+        headers: {
+          "X-Response-Time": `${elapsed}ms`,
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+  } catch (err) {
+    logError("Chat: unexpected server error", { error: String(err) });
     return NextResponse.json(
       { error: "Failed to process your question. Please try again." },
       { status: 500 }
