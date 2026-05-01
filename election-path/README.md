@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ElectionPath
 
-## Getting Started
+**Understand Elections. Step by Step.**
 
-First, run the development server:
+ElectionPath is an AI-powered civic education assistant that helps users understand the election process, timelines, and steps in a simple, interactive, and easy-to-follow way. Built for **HACK2SKILL – PromptWars Virtual (Challenge 2)**.
+
+---
+
+## ✨ Features
+
+| Module | Description |
+|---|---|
+| 🗺️ **Election Journey** | Interactive 5-stage journey through the complete election lifecycle |
+| 🤖 **AI Assistant** | Conversational Q&A with mock knowledge base + Gemini API integration ready |
+| 📅 **Timeline Explorer** | Visual 6-milestone timeline from registration to results |
+| 📚 **Quick Learn & FAQ** | Bite-sized cards + searchable FAQ for common questions |
+| 🎓 **ELI18 Mode** | "Explain Like I'm 18" toggle that simplifies all content for first-time voters |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+cd election-path
+npm install
+```
+
+### Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔑 Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create a `.env.local` file in the `election-path/` directory:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+# Optional: Enable Gemini AI responses (currently uses mock knowledge base fallback)
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-## Deploy on Vercel
+**Without `GEMINI_API_KEY`:** The app uses a built-in mock knowledge base to answer questions — no API key required for the demo.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**With `GEMINI_API_KEY`:** Uncomment the Gemini integration block in `app/api/chat/route.ts` to enable live AI responses.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📁 Project Structure
+
+```
+election-path/
+├── app/
+│   ├── layout.tsx           # Root layout with Navbar, Footer, ELI18 provider
+│   ├── page.tsx             # Landing page
+│   ├── journey/
+│   │   └── page.tsx         # Interactive Election Journey (5 stages)
+│   ├── assistant/
+│   │   └── page.tsx         # AI Chat Assistant
+│   ├── timeline/
+│   │   └── page.tsx         # Timeline Explorer (6 milestones)
+│   ├── learn/
+│   │   └── page.tsx         # Quick Learn Cards + FAQ
+│   └── api/
+│       └── chat/
+│           └── route.ts     # Chat API (mock KB + Gemini placeholder)
+├── components/
+│   ├── Navbar.tsx           # Responsive navigation with ELI18 toggle
+│   └── Footer.tsx           # Footer with links
+├── contexts/
+│   └── ELI18Context.tsx     # Global ELI18 mode state
+├── data/
+│   ├── electionStages.ts    # 5 election stages with full + simplified content
+│   ├── timelineMilestones.ts # 6 timeline milestones
+│   ├── quickLearnCards.ts   # 6 quick-learn cards (EVM, NOTA, etc.)
+│   ├── faqs.ts              # 8 FAQ entries
+│   └── knowledgeBase.ts     # Mock AI knowledge base (12 Q&A entries)
+└── README.md
+```
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Animations:** Framer Motion
+- **Icons:** Emoji-based (no external icon library required)
+- **AI Integration:** Mock knowledge base + Gemini API placeholder
+
+---
+
+## 🗺️ Pages & Routes
+
+| Route | Page |
+|---|---|
+| `/` | Landing page with hero, features, how-it-works |
+| `/journey` | Interactive 5-stage election journey |
+| `/assistant` | AI election assistant chatbot |
+| `/timeline` | 6-milestone visual timeline explorer |
+| `/learn` | Quick learn cards + searchable FAQ |
+
+---
+
+## 🔒 Content Policy
+
+- All content is **politically neutral**
+- No party bias or political persuasion
+- Focused on **process education only**
+- Based on the Indian electoral system as governed by the Election Commission of India
+
+---
+
+## 🏆 Hackathon
+
+Built for **HACK2SKILL – PromptWars Virtual (Challenge 2)**
+
+Goal: Make election literacy accessible for everyone, especially first-time voters, by turning complex election procedures into an intuitive guided experience.
