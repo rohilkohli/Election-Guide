@@ -3,12 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useELI18 } from "@/contexts/ELI18Context";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
+import type { Message } from "@/types";
 
 const suggestedPrompts = [
   "How do I register to vote?",
@@ -113,8 +108,13 @@ export default function AssistantPage() {
 
       {/* Chat Container */}
       <div className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
-        {/* Messages */}
-        <div className="flex flex-col gap-4 min-h-64">
+        {/* Messages — aria-live announces new messages to screen readers */}
+        <div
+          className="flex flex-col gap-4 min-h-64"
+          aria-live="polite"
+          aria-label="Conversation history"
+          role="log"
+        >
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div

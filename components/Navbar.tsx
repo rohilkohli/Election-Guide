@@ -69,9 +69,11 @@ export default function Navbar() {
             <button
               className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Toggle menu"
+              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
             >
-              <div className="w-5 space-y-1">
+              <div className="w-5 space-y-1" aria-hidden="true">
                 <span
                   className={`block h-0.5 bg-gray-600 transition-transform ${menuOpen ? "rotate-45 translate-y-1.5" : ""}`}
                 />
@@ -89,12 +91,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 pb-4 pt-2 space-y-1">
+        <div id="mobile-menu" className="md:hidden border-t border-gray-100 bg-white px-4 pb-4 pt-2 space-y-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
+              aria-current={pathname === link.href ? "page" : undefined}
               className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === link.href
                   ? "bg-indigo-50 text-indigo-700"
