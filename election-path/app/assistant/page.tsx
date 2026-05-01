@@ -57,7 +57,11 @@ export default function AssistantPage() {
         body: JSON.stringify({ message: text.trim(), eli18Mode }),
       });
 
-      const data = await res.json() as { response?: string; error?: string };
+      const raw: unknown = await res.json();
+      const data =
+        typeof raw === "object" && raw !== null
+          ? (raw as { response?: string; error?: string })
+          : {};
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

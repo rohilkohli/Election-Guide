@@ -36,11 +36,19 @@ function searchKnowledgeBase(query: string, eli18Mode: boolean): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, eli18Mode } = await req.json() as { message: string; eli18Mode: boolean };
+    const body: unknown = await req.json();
 
-    if (!message || typeof message !== "string") {
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      typeof (body as Record<string, unknown>).message !== "string" ||
+      !(body as Record<string, unknown>).message
+    ) {
       return NextResponse.json({ error: "Invalid message" }, { status: 400 });
     }
+
+    const { message, eli18Mode } = body as { message: string; eli18Mode?: unknown };
+    const safeEli18Mode = eli18Mode === true;
 
     // ── Gemini API integration (uncomment when GEMINI_API_KEY is set) ──
     // const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -71,7 +79,7 @@ export async function POST(req: NextRequest) {
     // ── End Gemini integration ──
 
     // Use mock knowledge base fallback
-    const answer = searchKnowledgeBase(message, eli18Mode || false);
+    const answer = searchKnowledgeBase(message, safeEli18Mode);
     return NextResponse.json({ response: answer });
   } catch {
     return NextResponse.json(

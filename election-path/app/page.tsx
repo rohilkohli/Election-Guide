@@ -245,7 +245,7 @@ export default function HomePage() {
             <div className="text-6xl">🎓</div>
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                &ldquo;Explain Like I&apos;m 18&rdquo; Mode
+                {'"'}Explain Like I{"'"}m 18{'"'} Mode
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Toggle ELI18 mode from the navigation bar to simplify all content for first-time
