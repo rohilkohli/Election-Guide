@@ -28,6 +28,8 @@ export default function Footer() {
                 { href: "/assistant", label: "AI Assistant" },
                 { href: "/timeline", label: "Timeline Explorer" },
                 { href: "/learn", label: "Quick Learn & FAQ" },
+                { href: "/quiz", label: "Voter Quiz" },
+                { href: "/resources", label: "Official Resources" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link

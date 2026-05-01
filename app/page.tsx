@@ -17,7 +17,7 @@ const features = [
     icon: "🤖",
     title: "AI Assistant",
     description:
-      "Ask any election question in plain language and get clear, beginner-friendly answers.",
+      "Ask any election question in plain language and get clear, beginner-friendly answers powered by Google Gemini.",
     href: "/assistant",
     color: "bg-indigo-50 border-indigo-100",
     iconBg: "bg-indigo-100",
@@ -39,6 +39,24 @@ const features = [
     href: "/learn",
     color: "bg-green-50 border-green-100",
     iconBg: "bg-green-100",
+  },
+  {
+    icon: "🧠",
+    title: "Voter Knowledge Quiz",
+    description:
+      "Test your election knowledge with 10 interactive questions — get instant feedback and detailed explanations.",
+    href: "/quiz",
+    color: "bg-violet-50 border-violet-100",
+    iconBg: "bg-violet-100",
+  },
+  {
+    icon: "🔗",
+    title: "Official Resources",
+    description:
+      "Find voter services, the Election Commission office on Google Maps, and the national helpline.",
+    href: "/resources",
+    color: "bg-teal-50 border-teal-100",
+    iconBg: "bg-teal-100",
   },
 ];
 
@@ -66,7 +84,7 @@ const howItWorks = [
 const stats = [
   { number: "5", label: "Election Stages" },
   { number: "6", label: "Timeline Milestones" },
-  { number: "12+", label: "Quick Learn Cards & FAQs" },
+  { number: "10", label: "Quiz Questions" },
   { number: "100%", label: "Politically Neutral" },
 ];
 

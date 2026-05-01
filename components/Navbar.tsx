@@ -11,6 +11,8 @@ const navLinks = [
   { href: "/assistant", label: "AI Assistant" },
   { href: "/timeline", label: "Timeline" },
   { href: "/learn", label: "Learn" },
+  { href: "/quiz", label: "Quiz" },
+  { href: "/resources", label: "Resources" },
 ];
 
 export default function Navbar() {
